@@ -7,7 +7,7 @@ export const Logo = () => {
         height={60}
         width={60}
         alt='logo'
-        src='/image/logo.png'
+        src='/images/logo.png'
         />
         <h2 className= " ml-2 font-bold ">सृष्टि IAS</h2>
     </div>
