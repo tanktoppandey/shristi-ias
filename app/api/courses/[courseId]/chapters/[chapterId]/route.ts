@@ -94,9 +94,12 @@ export async function PATCH(
   req: Request,
   { params }: { params: { courseId: string; chapterId: string } }
 ) {
+
+
   try {
     const { userId } = auth();
     const { isPublished, ...values } = await req.json();
+  
 
     if (!userId) {
       return new NextResponse("Unauthorized", { status: 401 });
@@ -122,6 +125,19 @@ export async function PATCH(
         ...values,
       }
     });
+   
+    if (values.testUrl){
+      console.log("UPDATING TEST")
+      const test = await db.chapter.update({
+        where: {
+          id: params.chapterId,
+          courseId: params.courseId,
+        },
+        data: {
+          ...values,
+        }
+      })
+    }
 
     if (values.videoUrl) {
       const existingMuxData = await db.muxData.findFirst({
@@ -143,6 +159,7 @@ export async function PATCH(
         input: values.videoUrl,
         playback_policy: "public",
         test: false,
+
       });
 
       await db.muxData.create({

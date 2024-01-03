@@ -3,7 +3,7 @@
 import * as z from "zod";
 import axios from "axios";
 import MuxPlayer from "@mux/mux-player-react";
-import { Pencil, PlusCircle, Video } from "lucide-react";
+import { File, Pencil, PlusCircle, Video } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
@@ -20,8 +20,13 @@ interface ChapterVideoFormProps {
 };
 
 const formSchema = z.object({
-  videoUrl: z.string().min(1),
+  // Use z.union to ensure that either videoUrl or testUrl is provided
+  url: z.union([
+    z.object({ videoUrl: z.string().min(1) }),
+    z.object({ testUrl: z.string().min(1) })
+  ])
 });
+
 
 export const ChapterVideoForm = ({
   initialData,
@@ -29,17 +34,40 @@ export const ChapterVideoForm = ({
   chapterId,
 }: ChapterVideoFormProps) => {
   const [isEditing, setIsEditing] = useState(false);
+  const [isTest,setIsTest] = useState(false)
 
   const toggleEdit = () => setIsEditing((current) => !current);
+  const toggleTest =()=>setIsTest((current)=>!current)
 
   const router = useRouter();
+  
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
+      const { videoUrl, testUrl } = (values.url || {}) as { videoUrl?: string; testUrl?: string };
+
+
+    // Check if videoUrl or testUrl is present and set urlToSend accordingly
+    if (videoUrl) {
+     const values = {videoUrl:videoUrl};
+     console.log("sending a video file")
       await axios.patch(`/api/courses/${courseId}/chapters/${chapterId}`, values);
       toast.success("Chapter updated");
       toggleEdit();
       router.refresh();
+
+
+    } else if (testUrl) {
+      const values = {testUrl:testUrl};
+      console.log("send a test file")
+      await axios.patch(`/api/courses/${courseId}/chapters/${chapterId}`, values);
+      toast.success("Chapter updated");
+      toggleEdit();
+      router.refresh();
+    }
+
+
+      
     } catch {
       toast.error("Something went wrong");
     }
@@ -47,8 +75,13 @@ export const ChapterVideoForm = ({
 
   return (
     <div className="mt-6 border bg-slate-100 rounded-md p-4">
-      <div className="font-medium flex items-center justify-between">
-        Chapter video
+      <Button onClick={toggleTest} >
+        {isTest?(<>This is a test</>):(<>This is a chapter</>)}
+        
+      </Button>
+      {isTest?(
+        <div className="font-medium flex items-center justify-between">
+        Chapter test
         <Button onClick={toggleEdit} variant="ghost">
           {isEditing && (
             <>Cancel</>
@@ -56,22 +89,41 @@ export const ChapterVideoForm = ({
           {!isEditing && !initialData.videoUrl && (
             <>
               <PlusCircle className="h-4 w-4 mr-2" />
-              Add a video
+              Add a test file
             </>
           )}
           {!isEditing && initialData.videoUrl && (
             <>
               <Pencil className="h-4 w-4 mr-2" />
-              Edit video
+              Edit edit test file
             </>
           )}
         </Button>
       </div>
-      {!isEditing && (
+      ):(<div className="font-medium flex items-center justify-between">
+      Chapter video
+      <Button onClick={toggleEdit} variant="ghost">
+        {isEditing && (
+          <>Cancel</>
+        )}
+        {!isEditing && !initialData.videoUrl && (
+          <>
+            <PlusCircle className="h-4 w-4 mr-2" />
+            Add a video
+          </>
+        )}
+        {!isEditing && initialData.videoUrl && (
+          <>
+            <Pencil className="h-4 w-4 mr-2" />
+            Edit video
+          </>
+        )}
+      </Button>
+    </div>)}
+     
+      {!isEditing && !isTest ?(
         !initialData.videoUrl ? (
-          <div className="flex items-center justify-center h-60 bg-slate-200 rounded-md">
-            <Video className="h-10 w-10 text-slate-500" />
-          </div>
+          null
         ) : (
           <div className="relative aspect-video mt-2">
             <MuxPlayer
@@ -79,14 +131,26 @@ export const ChapterVideoForm = ({
             />
           </div>
         )
+      ):(
+        !initialData.testUrl ? (
+            null
+        ) : (
+          <div className="relative aspect-video mt-2">
+            <p>
+              {initialData.testUrl}
+            </p>
+          </div>
+        )   
       )}
-      {isEditing && (
+
+
+      {isEditing && !isTest ? (
         <div>
           <FileUpload
             endpoint="chapterVideo"
             onChange={(url) => {
               if (url) {
-                onSubmit({ videoUrl: url });
+                onSubmit({ url:{videoUrl:url} });
               }
             }}
           />
@@ -94,6 +158,20 @@ export const ChapterVideoForm = ({
            Upload this chapter&apos;s video
           </div>
         </div>
+      ):(
+        <div>
+        <FileUpload
+          endpoint="chapterTest"
+          onChange={(url) => {
+            if (url) {
+              onSubmit({ url:{testUrl:url} });
+            }
+          }}
+        />
+        <div className="text-xs text-muted-foreground mt-4">
+         Upload this chapter&apos;s video or test
+        </div>
+      </div>
       )}
       {initialData.videoUrl && !isEditing && (
         <div className="text-xs text-muted-foreground mt-2">
