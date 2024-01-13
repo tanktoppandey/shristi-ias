@@ -40,6 +40,8 @@
     "lucide-react": "^0.276.0",
     "next": "13.4.12",
     "node-cache": "^5.1.2",
+    "paytm-blink-checkout-react": "^0.0.4",
+    "paytmchecksum": "^1.5.1",
     "postcss": "8.4.29",
     "query-string": "^8.1.0",
     "react": "18.2.0",
