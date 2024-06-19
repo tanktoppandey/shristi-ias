@@ -75,32 +75,9 @@ export const ChapterVideoForm = ({
 
   return (
     <div className="mt-6 border bg-slate-100 rounded-md p-4">
-      <Button onClick={toggleTest} >
-        {isTest?(<>This is a test</>):(<>This is a chapter</>)}
-        
-      </Button>
+
       {isTest?(
-        <div className="font-medium flex items-center justify-between">
-        Chapter test
-        <Button onClick={toggleEdit} variant="ghost">
-          {isEditing && (
-            <>Cancel</>
-          )}
-          {!isEditing && !initialData.videoUrl && (
-            <>
-              <PlusCircle className="h-4 w-4 mr-2" />
-              Add a test file
-            </>
-          )}
-          {!isEditing && initialData.videoUrl && (
-            <>
-              <Pencil className="h-4 w-4 mr-2" />
-              Edit edit test file
-            </>
-          )}
-        </Button>
-      </div>
-      ):(<div className="font-medium flex items-center justify-between">
+       null ):(<div className="font-medium flex items-center justify-between">
       Chapter video
       <Button onClick={toggleEdit} variant="ghost">
         {isEditing && (
